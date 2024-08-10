@@ -1,30 +1,29 @@
-// app/api/auth/[...nextauth]/route.js
+// pages/api/auth/[...nextauth].js
 import NextAuth from 'next-auth';
-import GoogleProvider from 'next-auth/providers/google';
-import CredentialsProvider from 'next-auth/providers/credentials';
+import Providers from 'next-auth/providers';
 import connectToDatabase from '@/lib/mongodb';
 import User from '@/models/User';
 import bcrypt from 'bcryptjs';
 
-export const authOptions = {
+export default NextAuth({
   session: {
-    strategy: 'jwt',
+    jwt: true,
   },
   providers: [
-    CredentialsProvider({
+    Providers.Credentials({
       name: 'Credentials',
       async authorize(credentials) {
         await connectToDatabase();
 
         const user = await User.findOne({ email: credentials.email });
-        if (user && await bcrypt.compare(credentials.password, user.password)) {
+        if (user && (await bcrypt.compare(credentials.password, user.password))) {
           return { email: user.email };
         }
 
         throw new Error('Invalid credentials');
       },
     }),
-    GoogleProvider({
+    Providers.Google({
       clientId: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
       async profile(profile) {
@@ -42,10 +41,5 @@ export const authOptions = {
       },
     }),
   ],
-  pages: {
-    signIn: '/login',
-  },
-};
-
-const handler = NextAuth(authOptions);
-export { handler as GET, handler as POST };
+  database: process.env.MONGODB_URI,
+});

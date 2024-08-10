@@ -1,6 +1,7 @@
 // app/protected/page.js
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '../api/auth/[...nextauth]/route';
+import LogoutButton from '../../components/LogoutButton';
 
 export default async function ProtectedPage() {
   const session = await getServerSession(authOptions);
@@ -18,6 +19,7 @@ export default async function ProtectedPage() {
     <div>
       <h1>Protected Page</h1>
       <p>You are logged in as {session.user.email}</p>
+      <LogoutButton />
     </div>
   );
 }
